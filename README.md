@@ -1,6 +1,8 @@
 # crate_interface
 
 [![Crates.io](https://img.shields.io/crates/v/crate_interface)](https://crates.io/crates/crate_interface)
+[![Docs.rs](https://docs.rs/crate_interface/badge.svg)](https://docs.rs/crate_interface)
+[![CI](https://github.com/arceos-org/crate_interface/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/arceos-org/crate_interface/actions/workflows/ci.yml)
 
 Provides a way to **define** an interface (trait) in a crate, but can
 **implement** or **use** it in any crate. It 's usually used to solve
