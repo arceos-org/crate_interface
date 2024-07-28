@@ -38,3 +38,46 @@ assert_eq!(
     "Hello, rust 456!"
 );
 ```
+
+## Implementation
+
+The procedural macros in the above example will generate the following code:
+
+```rust
+// #[def_interface]
+pub trait HelloIf {
+    fn hello(&self, name: &str, id: usize) -> String;
+}
+
+#[allow(non_snake_case)]
+pub mod __HelloIf_mod {
+    use super::*;
+    extern "Rust" {
+        pub fn __HelloIf_hello(name: &str, id: usize) -> String;
+    }
+}
+
+struct HelloIfImpl;
+
+// #[impl_interface]
+impl HelloIf for HelloIfImpl {
+    fn hello(&self, name: &str, id: usize) -> String {
+        {
+            #[export_name = "__HelloIf_hello"]
+            extern "Rust" fn __HelloIf_hello(name: &str, id: usize) -> String {
+                let _impl: HelloIfImpl = HelloIfImpl;
+                _impl.hello(name, id)
+            }
+        }
+        {
+            format!("Hello, {} {}!", name, id)
+        }
+    }
+}
+
+// call_interface!
+assert_eq!(
+    unsafe { __HelloIf_mod::__HelloIf_hello("world", 123) },
+    "Hello, world 123!"
+);
+```
