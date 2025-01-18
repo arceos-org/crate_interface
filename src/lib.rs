@@ -29,7 +29,7 @@ pub fn def_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
     if !attr.is_empty() {
         return compiler_error(Error::new(
             Span::call_site(),
-            "expect an empty attribute: `#[crate_interface_def]`",
+            "expect an empty attribute: `#[def_interface]`",
         ));
     }
 
@@ -89,7 +89,7 @@ pub fn impl_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
     if !attr.is_empty() {
         return compiler_error(Error::new(
             Span::call_site(),
-            "expect an empty attribute: `#[crate_interface_impl]`",
+            "expect an empty attribute: `#[impl_interface]`",
         ));
     }
 
@@ -138,11 +138,13 @@ pub fn impl_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
             };
 
             let item = quote! {
+                #[inline]
                 #(#attrs)*
                 #vis
                 #sig
                 {
                     {
+                        #[inline]
                         #[export_name = #extern_fn_name]
                         extern "Rust" #new_sig {
                             #call_impl

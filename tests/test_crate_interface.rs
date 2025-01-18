@@ -14,7 +14,7 @@ struct SimpleIfImpl;
 
 #[impl_interface]
 impl SimpleIf for SimpleIfImpl {
-    #[inline]
+    #[cfg(test)]
     fn foo() -> u32 {
         456
     }

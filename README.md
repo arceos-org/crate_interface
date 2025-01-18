@@ -61,8 +61,10 @@ struct HelloIfImpl;
 
 // #[impl_interface]
 impl HelloIf for HelloIfImpl {
+    #[inline]
     fn hello(&self, name: &str, id: usize) -> String {
         {
+            #[inline]
             #[export_name = "__HelloIf_hello"]
             extern "Rust" fn __HelloIf_hello(name: &str, id: usize) -> String {
                 let _impl: HelloIfImpl = HelloIfImpl;
