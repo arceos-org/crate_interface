@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="crate_interface"><title>crate_interface - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-84e720fa.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="crate_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.89.0-nightly (283db70ac 2025-05-25)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-4e99c027.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-fd3af306.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../crate_interface/index.html">crate_<wbr>interface</a><span class="version">0.1.4</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#crate_interface" title="crate_interface">crate_interface</a><ul><li><a href="#example" title="Example">Example</a></li><li><a href="#implementation" title="Implementation">Implementation</a></li></ul></li></ul><h3><a href="#macros">Crate Items</a></h3><ul class="block"><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>crate_interface</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/crate_interface/lib.rs.html#1-210">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="crate_interface"><a class="doc-anchor" href="#crate_interface">§</a>crate_interface</h2>
+<p><a href="https://crates.io/crates/crate_interface"><img src="https://img.shields.io/crates/v/crate_interface" alt="Crates.io" /></a>
+<a href="https://docs.rs/crate_interface"><img src="https://docs.rs/crate_interface/badge.svg" alt="Docs.rs" /></a>
+<a href="https://github.com/arceos-org/crate_interface/actions/workflows/ci.yml"><img src="https://github.com/arceos-org/crate_interface/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a></p>
+<p>Provides a way to <strong>define</strong> an interface (trait) in a crate, but can
+<strong>implement</strong> or <strong>use</strong> it in any crate. It ’s usually used to solve
+the problem of <em>circular dependencies</em> between crates.</p>
+<h3 id="example"><a class="doc-anchor" href="#example">§</a>Example</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Define the interface
+</span><span class="attr">#[crate_interface::def_interface]
+</span><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+
+<span class="comment">// Implement the interface in any crate
+</span><span class="kw">struct </span>HelloIfImpl;
+
+<span class="attr">#[crate_interface::impl_interface]
+</span><span class="kw">impl </span>HelloIf <span class="kw">for </span>HelloIfImpl {
+    <span class="kw">fn </span>hello(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">"Hello, {} {}!"</span>, name, id)
+    }
+}
+
+<span class="comment">// Call `HelloIfImpl::hello` in any crate
+</span><span class="kw">use </span>crate_interface::call_interface;
+<span class="macro">assert_eq!</span>(
+    <span class="macro">call_interface!</span>(HelloIf::hello(<span class="string">"world"</span>, <span class="number">123</span>)),
+    <span class="string">"Hello, world 123!"
+</span>);
+<span class="macro">assert_eq!</span>(
+    <span class="macro">call_interface!</span>(HelloIf::hello, <span class="string">"rust"</span>, <span class="number">456</span>), <span class="comment">// another calling style
+    </span><span class="string">"Hello, rust 456!"
+</span>);</code></pre></div>
+<h3 id="implementation"><a class="doc-anchor" href="#implementation">§</a>Implementation</h3>
+<p>The procedural macros in the above example will generate the following code:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// #[def_interface]
+</span><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+
+<span class="attr">#[allow(non_snake_case)]
+</span><span class="kw">pub mod </span>__HelloIf_mod {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">extern </span><span class="string">"Rust" </span>{
+        <span class="kw">pub fn </span>__HelloIf_hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+    }
+}
+
+<span class="kw">struct </span>HelloIfImpl;
+
+<span class="comment">// #[impl_interface]
+</span><span class="kw">impl </span>HelloIf <span class="kw">for </span>HelloIfImpl {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>hello(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+        {
+            <span class="attr">#[inline]
+            #[export_name = <span class="string">"__HelloIf_hello"</span>]
+            </span><span class="kw">extern </span><span class="string">"Rust" </span><span class="kw">fn </span>__HelloIf_hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+                <span class="kw">let </span>_impl: HelloIfImpl = HelloIfImpl;
+                _impl.hello(name, id)
+            }
+        }
+        {
+            <span class="macro">format!</span>(<span class="string">"Hello, {} {}!"</span>, name, id)
+        }
+    }
+}
+
+<span class="comment">// call_interface!
+</span><span class="macro">assert_eq!</span>(
+    <span class="kw">unsafe </span>{ __HelloIf_mod::__HelloIf_hello(<span class="string">"world"</span>, <span class="number">123</span>) },
+    <span class="string">"Hello, world 123!"
+</span>);</code></pre></div>
+</div></details><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.call_interface.html" title="macro crate_interface::call_interface">call_<wbr>interface</a></dt><dd>Call a function in the interface.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.def_interface.html" title="attr crate_interface::def_interface">def_<wbr>interface</a></dt><dd>Define an interface.</dd><dt><a class="attr" href="attr.impl_interface.html" title="attr crate_interface::impl_interface">impl_<wbr>interface</a></dt><dd>Implement the interface for a struct.</dd></dl></section></div></main></body></html>
