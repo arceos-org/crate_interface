@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Implement the crate interface for a struct."><title>impl_interface in crate_interface - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-80aa586b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="crate_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.0-nightly (806c2a35d 2025-12-19)" data-channel="nightly" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../static.files/storage-e2aeef58.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-3e30299d.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">impl_interface</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../crate_interface/index.html">crate_<wbr>interface</a><span class="version">0.2.0</span></h2></div><div class="sidebar-elems"><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">crate_interface</a></div><h1>Attribute Macro <span class="attr">impl_<wbr>interface</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/crate_interface/lib.rs.html#215-297">Source</a> </span></div><pre class="rust item-decl"><code>#[impl_interface]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Implement the crate interface for a struct.</p>
+<p>This attribute should be added above the implementation of a trait for a
+struct, and the trait must be defined with
+<a href="attr.def_interface.html" title="attr crate_interface::def_interface"><code>#[def_interface]</code></a>.</p>
+<p>It is not necessary to implement it in the same crate as the definition, but
+it is required that these crates are linked together.</p>
+<p>The specified trait name must not be an alias to the originally defined
+name; otherwise, it will result in a compile error.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[def_interface]
+</span><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo();
+}
+
+<span class="kw">use </span>MyIf <span class="kw">as </span>MyIf2;
+<span class="kw">struct </span>MyImpl;
+<span class="attr">#[impl_interface]
+</span><span class="kw">impl </span>MyIf2 <span class="kw">for </span>MyImpl {
+    <span class="kw">fn </span>foo() {}
+}</code></pre></div>
+<p>It’s also mandatory to match the namespace if one is specified when defining
+the interface. For example, the following will result in a compile error:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[def_interface(namespace = MyNs)]
+</span><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo();
+}
+
+<span class="kw">struct </span>MyImpl;
+
+<span class="attr">#[impl_interface(namespace = OtherNs)] </span><span class="comment">// error: namespace does not match
+</span><span class="kw">impl </span>MyIf <span class="kw">for </span>MyImpl {
+    <span class="kw">fn </span>foo() {}
+}</code></pre></div>
+<p>See the <a href="index.html" title="mod crate_interface">crate-level documentation</a> for more details.</p>
+</div></details></section></div></main></body></html>

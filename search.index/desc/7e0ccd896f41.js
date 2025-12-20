@@ -1,0 +1,1 @@
+rd_("AiDefine a crate interface.BeCall a function in a crate interface.BkImplement the crate interface for a struct.ocrate_interface")
