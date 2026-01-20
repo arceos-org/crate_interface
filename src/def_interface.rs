@@ -27,6 +27,8 @@ pub fn def_interface(
 
     let mut extern_fn_list = vec![];
     let mut callers: Vec<proc_macro2::TokenStream> = vec![];
+    #[cfg(feature = "weak_default")]
+    let mut weak_default_fns = vec![];
     for item in &ast.items {
         if let TraitItem::Fn(method) = item {
             let sig = &method.sig;
@@ -44,6 +46,34 @@ pub fn def_interface(
             extern_fn_list.push(quote! {
                 pub #extern_fn_sig;
             });
+
+            // Generate weak symbol function for methods with default implementations
+            #[cfg(feature = "weak_default")]
+            if let Some(default_body) = &method.default {
+                // Check if method has `self` parameter
+                use syn::FnArg;
+                if method
+                    .sig
+                    .inputs
+                    .iter()
+                    .any(|arg| matches!(arg, FnArg::Receiver(_)))
+                {
+                    // For methods with `self`, we cannot directly use the default
+                    // implementation without a concrete type. Report an error.
+                    return Err(Error::new_spanned(
+                        sig,
+                        "weak_default does not support methods with `self` parameter",
+                    ));
+                }
+
+                // Use weak symbol for default implementations.
+                weak_default_fns.push(quote! {
+                    #[allow(non_snake_case)]
+                    #[linkage = "weak"]
+                    #[no_mangle]
+                    extern "Rust" #extern_fn_sig #default_body
+                });
+            }
 
             if macro_arg.gen_caller {
                 let attrs = &method.attrs;
@@ -84,7 +114,7 @@ pub fn def_interface(
         ast.items.push(ns_guard);
     }
 
-    Ok(quote! {
+    let result = quote! {
         #ast
 
         #[doc(hidden)]
@@ -97,5 +127,8 @@ pub fn def_interface(
         }
 
         #(#callers)*
-    })
+    };
+    #[cfg(feature = "weak_default")]
+    let result = quote! { #result #(#weak_default_fns)* };
+    Ok(result)
 }

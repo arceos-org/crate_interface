@@ -20,5 +20,11 @@ proc-macro2 = "1.0"
 quote = "1.0"
 syn = { version = "2.0", features = ["full"] }
 
+[features]
+default = []
+# Generate weak symbol functions for trait methods with default implementations.
+# Requires nightly Rust and `#![feature(linkage)]` in the crate that uses this.
+weak_default = []
+
 [lib]
 proc-macro = true
