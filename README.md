@@ -155,6 +155,17 @@ A few things to keep in mind when using this crate:
   }
   ```
 
+- **Generic parameters are not supported.** Interface functions cannot have
+  generic type parameters, lifetime parameters, or const generic parameters:
+
+  ```rust,compile_fail
+  # use crate_interface::*;
+  #[def_interface]
+  trait MyIf {
+      fn foo<T>(x: T); // error: generic parameters are not allowed
+  }
+  ```
+
 - Do not implement an interface for multiple types. No matter in the same crate
   or different crates as long as they are linked together, it will cause a
   link-time error due to duplicate symbol definitions.
