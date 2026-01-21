@@ -6,7 +6,7 @@ use crate::errors::generic_not_allowed_error;
 
 /// Validate the function signature, rejecting generic parameters and receivers.
 ///
-/// Returns `Err(TokenStream)` with a compile error if:
+/// Returns `Err(Error)` with a compile error if:
 /// - The function has generic parameters
 /// - Any argument is a receiver (`self`, `&self`, `&mut self`)
 pub fn validate_fn_signature(sig: &Signature) -> Result<(), Error> {
