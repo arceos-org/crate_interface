@@ -17,6 +17,31 @@ fn compiler_error(err: Error) -> TokenStream {
     err.to_compile_error().into()
 }
 
+/// Clone and validate the argument list, rejecting methods with receivers.
+///
+/// Returns `Err(TokenStream)` with a compile error if any argument is a
+/// receiver (`self`, `&self`, `&mut self`).
+/// Returns `Ok` with a cloned argument list if all arguments are typed.
+fn clone_and_validate_args(
+    inputs: &Punctuated<FnArg, Comma>,
+) -> Result<Punctuated<FnArg, Comma>, TokenStream> {
+    let mut args = Punctuated::new();
+    for arg in inputs {
+        match arg {
+            FnArg::Receiver(receiver) => {
+                return Err(compiler_error(Error::new_spanned(
+                    receiver,
+                    "methods with receiver (self) are not allowed in crate_interface",
+                )));
+            }
+            FnArg::Typed(_) => {
+                args.push(arg.clone());
+            }
+        }
+    }
+    Ok(args)
+}
+
 /// Generate a unique identifier to guard against aliasing of trait names.
 fn alias_guard_name(trait_name: &Ident) -> Ident {
     format_ident!("__MustNotAnAlias__{}", trait_name)
@@ -59,6 +84,17 @@ fn extern_fn_mod_name(trait_name: &Ident) -> Ident {
 /// It is also possible to generate calling helper functions for each interface
 /// function by enabling the `gen_caller` option.
 ///
+/// **Note:** Methods with receivers (`self`, `&self`, `&mut self`) are not
+/// allowed. Only associated functions (static methods) are supported:
+///
+/// ```rust,compile_fail
+/// # use crate_interface::*;
+/// #[def_interface]
+/// trait MyIf {
+///     fn foo(&self); // error: methods with receiver (self) are not allowed
+/// }
+/// ```
+///
 /// See the [crate-level documentation](crate) for more details.
 #[proc_macro_attribute]
 pub fn def_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -77,18 +113,18 @@ pub fn def_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
             let sig = &method.sig;
             let fn_name = &sig.ident;
 
+            // Reject methods with receiver (self, &self, &mut self) and extract args
+            let args = match clone_and_validate_args(&method.sig.inputs) {
+                Ok(args) => args,
+                Err(err) => return err,
+            };
+
             let extern_fn_name =
                 extern_fn_name(macro_arg.namespace.as_deref(), trait_name, fn_name);
 
             let mut extern_fn_sig = sig.clone();
             extern_fn_sig.ident = extern_fn_name.clone();
-            extern_fn_sig.inputs = Punctuated::new();
-
-            for arg in &method.sig.inputs {
-                if let FnArg::Typed(_) = arg {
-                    extern_fn_sig.inputs.push(arg.clone());
-                }
-            }
+            extern_fn_sig.inputs = args;
 
             extern_fn_list.push(quote! {
                 pub #extern_fn_sig;
@@ -210,6 +246,23 @@ pub fn def_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
+/// **Note:** Methods with receivers (`self`, `&self`, `&mut self`) are not
+/// allowed in the implementation either:
+///
+/// ```rust,compile_fail
+/// # use crate_interface::*;
+/// trait MyIf {
+///     fn foo(&self);
+/// }
+///
+/// struct MyImpl;
+///
+/// #[impl_interface]
+/// impl MyIf for MyImpl {
+///     fn foo(&self) {} // error: methods with receiver (self) are not allowed
+/// }
+/// ```
+///
 /// See the [crate-level documentation](crate) for more details.
 #[proc_macro_attribute]
 pub fn impl_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -235,30 +288,29 @@ pub fn impl_interface(attr: TokenStream, item: TokenStream) -> TokenStream {
             let extern_fn_name =
                 extern_fn_name(arg.namespace.as_deref(), trait_name, fn_name).to_string();
 
+            // Reject methods with receiver (self, &self, &mut self) and extract args
+            let fn_args = match clone_and_validate_args(&sig.inputs) {
+                Ok(args) => args,
+                Err(err) => return err,
+            };
+
             let mut new_sig = sig.clone();
             new_sig.ident = format_ident!("{}", extern_fn_name);
-            new_sig.inputs = Punctuated::new();
+            new_sig.inputs = fn_args;
 
-            let mut args = vec![];
-            let mut has_self = false;
-            for arg in &sig.inputs {
-                match arg {
-                    FnArg::Receiver(_) => has_self = true,
-                    FnArg::Typed(ty) => {
-                        args.push(ty.pat.clone());
-                        new_sig.inputs.push(arg.clone());
+            let args: Vec<_> = new_sig
+                .inputs
+                .iter()
+                .filter_map(|arg| {
+                    if let FnArg::Typed(ty) = arg {
+                        Some(ty.pat.clone())
+                    } else {
+                        None
                     }
-                }
-            }
+                })
+                .collect();
 
-            let call_impl = if has_self {
-                quote! {
-                    let _impl: #impl_name = #impl_name;
-                    _impl.#fn_name( #(#args),* )
-                }
-            } else {
-                quote! { #impl_name::#fn_name( #(#args),* ) }
-            };
+            let call_impl = quote! { #impl_name::#fn_name( #(#args),* ) };
 
             let item = quote! {
                 #[inline]
