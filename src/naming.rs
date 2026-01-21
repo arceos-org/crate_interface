@@ -7,7 +7,7 @@ use syn::{
 
 /// Extract the argument list from the function signature to be used by the caller.
 ///
-/// Returns `Err(TokenStream)` with a compile error if any argument is not an identifier.
+/// Returns `Err(Error)` with a compile error if any argument is not an identifier.
 ///
 /// Receivers are ignored because they are already rejected by `validate_fn_signature`.
 ///
