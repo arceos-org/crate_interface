@@ -6,6 +6,8 @@ use syn::{parse_quote, Error, ItemTrait, TraitItem};
 
 use crate::args::DefInterfaceArgs;
 use crate::errors::generic_not_allowed_error;
+#[cfg(not(feature = "weak_default"))]
+use crate::errors::weak_default_required_error;
 use crate::naming::{
     alias_guard_name, extern_fn_mod_name, extern_fn_name, extract_caller_args, namespace_guard_name,
 };
@@ -47,6 +49,12 @@ pub fn def_interface(
             extern_fn_list.push(quote! {
                 pub #extern_fn_sig;
             });
+
+            // Reject default implementations when weak_default feature is not enabled
+            #[cfg(not(feature = "weak_default"))]
+            if method.default.is_some() {
+                return Err(weak_default_required_error(method));
+            }
 
             // Generate weak symbol function for methods with default implementations
             #[cfg(feature = "weak_default")]

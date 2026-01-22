@@ -1,5 +1,6 @@
 [workspace]
 members = ["crate_interface_lite"]
+exclude = ["test_crates"]
 
 [package]
 name = "crate_interface"
