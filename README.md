@@ -139,6 +139,25 @@ fn main() {
 
 ```
 
+### Default Implementations with Weak Symbols
+
+The `weak_default` feature allows you to define **default implementations** for
+interface methods. These defaults are compiled as **weak symbols**, which means:
+
+- Implementors can choose to override only the methods they need
+- Methods without explicit implementations will automatically use the defaults
+- The linker resolves which implementation to use at link time
+
+This is useful when you want to provide sensible defaults while still allowing
+customization. To use this feature, you need to use nightly Rust and enable
+`#![feature(linkage)]` in the crate that defines the interface trait.
+
+Due to the limitation of the Rust compiler, it's impossible to implement an
+interface with default implementations in the same crate where it's defined. It
+should not be a problem for most cases, because the only sensible scenario an
+interface being implemented in the same crate where it's defined is when it's
+tested, and such tests can always be done in a separate crate.
+
 ## Things to Note
 
 A few things to keep in mind when using this crate:
