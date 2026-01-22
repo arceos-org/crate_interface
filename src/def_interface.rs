@@ -29,7 +29,8 @@ pub fn def_interface(
     let mut callers: Vec<proc_macro2::TokenStream> = vec![];
     #[cfg(feature = "weak_default")]
     let mut weak_default_fns = vec![];
-    for item in &ast.items {
+
+    for item in &mut ast.items {
         if let TraitItem::Fn(method) = item {
             let sig = &method.sig;
             let fn_name = &sig.ident;
@@ -49,23 +50,7 @@ pub fn def_interface(
 
             // Generate weak symbol function for methods with default implementations
             #[cfg(feature = "weak_default")]
-            if let Some(default_body) = &method.default {
-                // Check if method has `self` parameter
-                use syn::FnArg;
-                if method
-                    .sig
-                    .inputs
-                    .iter()
-                    .any(|arg| matches!(arg, FnArg::Receiver(_)))
-                {
-                    // For methods with `self`, we cannot directly use the default
-                    // implementation without a concrete type. Report an error.
-                    return Err(Error::new_spanned(
-                        sig,
-                        "weak_default does not support methods with `self` parameter",
-                    ));
-                }
-
+            if let Some(default_body) = &mut method.default {
                 // Use weak symbol for default implementations.
                 weak_default_fns.push(quote! {
                     #[allow(non_snake_case)]
@@ -73,6 +58,11 @@ pub fn def_interface(
                     #[no_mangle]
                     extern "Rust" #extern_fn_sig #default_body
                 });
+
+                let caller_args = extract_caller_args(sig)?;
+                *default_body = syn::parse2(quote! {{
+                    unsafe { #extern_fn_name ( #caller_args ) }
+                }})?;
             }
 
             if macro_arg.gen_caller {
