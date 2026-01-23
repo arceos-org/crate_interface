@@ -10,7 +10,9 @@
 use crate_interface::call_interface;
 
 // Import the implementation crate to link the implementations
-use impl_weak_traits::{AllDefaultImpl, CallerWeakImpl, FullImpl, NamespacedWeakImpl};
+use impl_weak_traits::{
+    AllDefaultImpl, CallerWeakImpl, FullImpl, NamespacedWeakImpl, SelfRefFullImpl,
+};
 
 // Suppress unused warnings - these are used for linking
 const _: () = {
@@ -18,6 +20,7 @@ const _: () = {
     let _ = std::any::type_name::<AllDefaultImpl>;
     let _ = std::any::type_name::<NamespacedWeakImpl>;
     let _ = std::any::type_name::<CallerWeakImpl>;
+    let _ = std::any::type_name::<SelfRefFullImpl>;
 };
 
 fn test_full_impl_required_methods() {
@@ -101,6 +104,59 @@ fn test_mixed_strong_and_weak() {
     println!("  [PASS] test_mixed_strong_and_weak");
 }
 
+/// Test Self::method references with overridden base_value and transform.
+///
+/// SelfRefFullImpl overrides:
+/// - base_value() to return 500 (default: 100)
+/// - transform() to multiply by 10 (default: v + 1)
+fn test_self_ref_full() {
+    // Test direct call: Self::base_value()
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::base_value),
+        500
+    );
+
+    // derived_value calls Self::base_value() directly
+    // 500 * 2 = 1000
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::derived_value),
+        1000
+    );
+
+    // derived_with_offset calls Self::base_value() directly
+    // 500 + 50 = 550
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::derived_with_offset, 50),
+        550
+    );
+
+    // Test indirect reference: Self::transform as value
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::transform, 5),
+        50
+    );
+
+    // call_via_ref uses `let f = Self::transform; f(v)` pattern
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::call_via_ref, 5),
+        50
+    );
+
+    // call_twice applies transform twice: 5 * 10 * 10 = 500
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::call_twice, 5),
+        500
+    );
+
+    // Verify required_id
+    assert_eq!(
+        call_interface!(define_weak_traits::SelfRefIf::required_id),
+        2
+    );
+
+    println!("  [PASS] test_self_ref_full");
+}
+
 fn main() {
     println!("Running weak_default trait tests (full implementation)...");
 
@@ -110,6 +166,7 @@ fn main() {
     test_namespaced_weak_interface();
     test_caller_weak_interface();
     test_mixed_strong_and_weak();
+    test_self_ref_full();
 
     println!("All weak_default trait tests (full impl) passed!");
 }

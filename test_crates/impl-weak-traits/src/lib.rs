@@ -9,7 +9,9 @@
 #![feature(linkage)]
 
 use crate_interface::impl_interface;
-use define_weak_traits::{AllDefaultIf, CallerWeakIf, NamespacedWeakIf, WeakDefaultIf};
+use define_weak_traits::{
+    AllDefaultIf, CallerWeakIf, NamespacedWeakIf, SelfRefIf, WeakDefaultIf,
+};
 
 /// Full implementation - overrides ALL methods including defaults.
 /// This creates strong symbols that override the weak symbol defaults.
@@ -71,4 +73,30 @@ impl CallerWeakIf for CallerWeakImpl {
         x * 3
     }
     // default_offset() will use the weak symbol default.
+}
+
+/// Implementation of SelfRefIf that OVERRIDES base_value and transform.
+///
+/// This tests that:
+/// - derived_value() correctly calls the overridden base_value()
+/// - call_via_ref() correctly uses the overridden transform via proxy function
+pub struct SelfRefFullImpl;
+
+#[impl_interface]
+impl SelfRefIf for SelfRefFullImpl {
+    fn required_id() -> u32 {
+        2
+    }
+
+    // Override base_value to return 500 instead of default 100
+    fn base_value() -> u32 {
+        500
+    }
+
+    // Override transform: multiply by 10 instead of adding 1
+    fn transform(v: i32) -> i32 {
+        v * 10
+    }
+    // derived_value(), derived_with_offset(), call_via_ref(), call_twice()
+    // all use default implementations with Self:: references
 }

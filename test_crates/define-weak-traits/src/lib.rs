@@ -82,3 +82,50 @@ pub trait CallerWeakIf {
         1000
     }
 }
+
+/// A trait demonstrating Self::method references in default implementations.
+///
+/// This tests both:
+/// 1. Direct calls: `Self::base_value()` - method called directly
+/// 2. Indirect references: `Self::transform` - method used as a value/function pointer
+///
+/// Both cases are handled uniformly by generating proxy functions.
+#[def_interface]
+pub trait SelfRefIf {
+    /// Base method with default implementation.
+    /// Can be overridden by implementors.
+    fn base_value() -> u32 {
+        100
+    }
+
+    /// Derived method that calls `base_value()` directly.
+    fn derived_value() -> u32 {
+        Self::base_value() * 2
+    }
+
+    /// Derived method using base_value with additional computation.
+    fn derived_with_offset(offset: u32) -> u32 {
+        Self::base_value() + offset
+    }
+
+    /// Transform function that can be overridden.
+    fn transform(v: i32) -> i32 {
+        v + 1
+    }
+
+    /// Method that uses `Self::transform` as a value (indirect reference).
+    fn call_via_ref(v: i32) -> i32 {
+        let f = Self::transform;
+        f(v)
+    }
+
+    /// Method that uses multiple indirect references to the same method.
+    fn call_twice(v: i32) -> i32 {
+        let f1 = Self::transform;
+        let f2 = Self::transform;
+        f2(f1(v))
+    }
+
+    /// Required method to register the impl.
+    fn required_id() -> u32;
+}
