@@ -6,7 +6,10 @@ use quote::format_ident;
 use quote::quote;
 use syn::{parse_quote, Error, ItemTrait, TraitItem};
 #[cfg(feature = "weak_default")]
-use syn::{visit_mut::VisitMut, Block, Expr, ExprPath, Ident, Path, PathSegment, Signature, punctuated::Punctuated};
+use syn::{
+    punctuated::Punctuated, visit_mut::VisitMut, Block, Expr, ExprPath, Ident, Path, PathSegment,
+    Signature,
+};
 
 #[cfg(feature = "weak_default")]
 use std::collections::HashMap;
