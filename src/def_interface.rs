@@ -29,8 +29,6 @@ pub fn def_interface(
 
     let mut extern_fn_list = vec![];
     let mut callers: Vec<proc_macro2::TokenStream> = vec![];
-    #[cfg(feature = "weak_default")]
-    let mut weak_default_fns = vec![];
 
     for item in &mut ast.items {
         if let TraitItem::Fn(method) = item {
@@ -59,17 +57,19 @@ pub fn def_interface(
             // Generate weak symbol function for methods with default implementations
             #[cfg(feature = "weak_default")]
             if let Some(default_body) = &mut method.default {
-                // Use weak symbol for default implementations.
-                weak_default_fns.push(quote! {
+                let weak_default_impl = quote! {
                     #[allow(non_snake_case)]
                     #[linkage = "weak"]
                     #[no_mangle]
                     extern "Rust" #extern_fn_sig #default_body
-                });
+                };
+                // weak_default_fns.push(weak_default_impl);
 
                 let caller_args = extract_caller_args(sig)?;
                 *default_body = syn::parse2(quote! {{
-                    unsafe { #extern_fn_name ( #caller_args ) }
+                    #weak_default_impl
+                    
+                    #extern_fn_name ( #caller_args ) 
                 }})?;
             }
 
@@ -112,7 +112,7 @@ pub fn def_interface(
         ast.items.push(ns_guard);
     }
 
-    let result = quote! {
+    Ok(quote! {
         #ast
 
         #[doc(hidden)]
@@ -125,8 +125,5 @@ pub fn def_interface(
         }
 
         #(#callers)*
-    };
-    #[cfg(feature = "weak_default")]
-    let result = quote! { #result #(#weak_default_fns)* };
-    Ok(result)
+    })
 }
