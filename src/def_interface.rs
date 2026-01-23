@@ -227,7 +227,6 @@ pub fn def_interface(
                     #[no_mangle]
                     extern "Rust" #extern_fn_sig #default_body_cleaned
                 };
-                // weak_default_fns.push(weak_default_impl);
 
                 let caller_args = extract_caller_args(sig)?;
                 *default_body = syn::parse2(quote! {{
