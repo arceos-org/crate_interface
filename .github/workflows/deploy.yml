@@ -44,6 +44,7 @@ jobs:
 
       - name: Create index redirect
         run: |
+          mkdir -p target/aarch64-unknown-none/doc
           printf '<meta http-equiv="refresh" content="0;url=phytium_mci/index.html">' > target/aarch64-unknown-none/doc/index.html
 
       - name: Upload artifact
