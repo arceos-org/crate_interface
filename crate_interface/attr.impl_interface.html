@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Implement the crate interface for a struct."><title>impl_interface in crate_interface - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-0bd2dfd4.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="crate_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0-nightly (e96bb7e44 2026-01-27)" data-channel="nightly" data-search-js="search-86d08462.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-f9617a14.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-12f88f4f.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">impl_interface</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../crate_interface/index.html">crate_<wbr>interface</a><span class="version">0.3.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">impl_<wbr>interface</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#restrictions" title="Restrictions">Restrictions</a><ul><li><a href="#no-alias" title="No Alias">No Alias</a></li><li><a href="#no-namespace-mismatch" title="No Namespace Mismatch">No Namespace Mismatch</a></li><li><a href="#no-receivers" title="No Receivers">No Receivers</a></li><li><a href="#no-generic-parameters" title="No Generic Parameters">No Generic Parameters</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate crate_<wbr>interface</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">crate_interface</a></div><h1>Attribute Macro <span class="attr">impl_<wbr>interface</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/crate_interface/lib.rs.html#167-174">Source</a> </span></div><pre class="rust item-decl"><code>#[impl_interface]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Implement the crate interface for a struct.</p>
+<p>This attribute should be added above the implementation of a trait for a
+struct, and the trait must be defined with
+<a href="attr.def_interface.html" title="attr crate_interface::def_interface"><code>#[def_interface]</code></a>.</p>
+<p>It is not necessary to implement it in the same crate as the definition, but
+it is required that these crates are linked together.</p>
+<p>See the <a href="index.html" title="mod crate_interface">crate-level documentation</a> for more details.</p>
+<h3 id="restrictions"><a class="doc-anchor" href="#restrictions">§</a>Restrictions</h3><h4 id="no-alias"><a class="doc-anchor" href="#no-alias">§</a>No Alias</h4>
+<p>The specified trait name must not be an alias to the originally defined
+name; otherwise, it will result in a compile error.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[def_interface]
+</span><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo();
+}
+
+<span class="kw">use </span>MyIf <span class="kw">as </span>MyIf2;
+<span class="kw">struct </span>MyImpl;
+<span class="attr">#[impl_interface]
+</span><span class="kw">impl </span>MyIf2 <span class="kw">for </span>MyImpl {
+    <span class="kw">fn </span>foo() {}
+}</code></pre></div><h4 id="no-namespace-mismatch"><a class="doc-anchor" href="#no-namespace-mismatch">§</a>No Namespace Mismatch</h4>
+<p>It’s also mandatory to match the namespace if one is specified when defining
+the interface. For example, the following will result in a compile error:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[def_interface(namespace = MyNs)]
+</span><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo();
+}
+
+<span class="kw">struct </span>MyImpl;
+
+<span class="attr">#[impl_interface(namespace = OtherNs)] </span><span class="comment">// error: namespace does not match
+</span><span class="kw">impl </span>MyIf <span class="kw">for </span>MyImpl {
+    <span class="kw">fn </span>foo() {}
+}</code></pre></div><h4 id="no-receivers"><a class="doc-anchor" href="#no-receivers">§</a>No Receivers</h4>
+<p>Methods with receivers (<code>self</code>, <code>&amp;self</code>, <code>&amp;mut self</code>) are not
+allowed in the implementation either:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo(<span class="kw-2">&amp;</span><span class="self">self</span>);
+}
+
+<span class="kw">struct </span>MyImpl;
+
+<span class="attr">#[impl_interface]
+</span><span class="kw">impl </span>MyIf <span class="kw">for </span>MyImpl {
+    <span class="kw">fn </span>foo(<span class="kw-2">&amp;</span><span class="self">self</span>) {} <span class="comment">// error: methods with receiver (self) are not allowed
+</span>}</code></pre></div><h4 id="no-generic-parameters"><a class="doc-anchor" href="#no-generic-parameters">§</a>No Generic Parameters</h4>
+<p>Generic parameters are not supported in the implementation either:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo&lt;T&gt;(x: T);
+}
+
+<span class="kw">struct </span>MyImpl;
+
+<span class="attr">#[impl_interface]
+</span><span class="kw">impl </span>MyIf <span class="kw">for </span>MyImpl {
+    <span class="kw">fn </span>foo&lt;T&gt;(x: T) {} <span class="comment">// error: generic parameters are not allowed
+</span>}</code></pre></div></div></details></section></div></main></body></html>

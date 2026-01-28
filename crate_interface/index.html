@@ -1,0 +1,309 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="crate_interface"><title>crate_interface - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-0bd2dfd4.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="crate_interface" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0-nightly (e96bb7e44 2026-01-27)" data-channel="nightly" data-search-js="search-86d08462.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-f9617a14.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-12f88f4f.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate crate_interface</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../crate_interface/index.html">crate_<wbr>interface</a><span class="version">0.3.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#crate_interface" title="crate_interface">crate_interface</a><ul><li><a href="#example" title="Example">Example</a></li><li><a href="#things-to-note" title="Things to Note">Things to Note</a></li><li><a href="#implementation" title="Implementation">Implementation</a></li></ul></li></ul><h3><a href="#macros">Crate Items</a></h3><ul class="block"><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>crate_<wbr>interface</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/crate_interface/lib.rs.html#1-204">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="crate_interface"><a class="doc-anchor" href="#crate_interface">§</a>crate_interface</h2>
+<p><a href="https://crates.io/crates/crate_interface"><img src="https://img.shields.io/crates/v/crate_interface" alt="Crates.io" /></a>
+<a href="https://docs.rs/crate_interface"><img src="https://docs.rs/crate_interface/badge.svg" alt="Docs.rs" /></a>
+<a href="https://github.com/arceos-org/crate_interface/actions/workflows/ci.yml"><img src="https://github.com/arceos-org/crate_interface/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a></p>
+<p>Provides a way to <strong>define</strong> a static interface (as a Rust trait) in a crate,
+<strong>implement</strong> it in another crate, and <strong>call</strong> it from any crate, using
+procedural macros. This is useful when you want to solve <em>circular dependencies</em>
+between crates.</p>
+<h3 id="example"><a class="doc-anchor" href="#example">§</a>Example</h3><h4 id="basic-usage"><a class="doc-anchor" href="#basic-usage">§</a>Basic Usage</h4>
+<p>Define an interface using the <code>def_interface!</code> attribute macro, implement it
+using the <code>impl_interface!</code> attribute macro, and call it using the
+<code>call_interface!</code> macro. These macros can be used in separate crates.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Define the interface
+</span><span class="attr">#[crate_interface::def_interface]
+</span><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+
+<span class="comment">// Implement the interface in any crate
+</span><span class="kw">struct </span>HelloIfImpl;
+
+<span class="attr">#[crate_interface::impl_interface]
+</span><span class="kw">impl </span>HelloIf <span class="kw">for </span>HelloIfImpl {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">"Hello, {} {}!"</span>, name, id)
+    }
+}
+
+<span class="comment">// Call `HelloIfImpl::hello` in any crate
+</span><span class="kw">use </span>crate_interface::call_interface;
+<span class="macro">assert_eq!</span>(
+    <span class="macro">call_interface!</span>(HelloIf::hello(<span class="string">"world"</span>, <span class="number">123</span>)),
+    <span class="string">"Hello, world 123!"
+</span>);
+<span class="macro">assert_eq!</span>(
+    <span class="macro">call_interface!</span>(HelloIf::hello, <span class="string">"rust"</span>, <span class="number">456</span>), <span class="comment">// another calling style
+    </span><span class="string">"Hello, rust 456!"
+</span>);</code></pre></div><h4 id="generating-calling-helper-functions"><a class="doc-anchor" href="#generating-calling-helper-functions">§</a>Generating Calling Helper Functions</h4>
+<p>It’s also possible to generate calling helper functions for each interface
+function, so that you can call them directly without using the <code>call_interface!</code>
+macro.</p>
+<p>This is the <strong>RECOMMENDED</strong> way to use this crate whenever possible, as it
+provides a much more ergonomic API.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Define the interface with caller generation
+</span><span class="attr">#[crate_interface::def_interface(gen_caller)]
+</span><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+
+<span class="comment">// a function to call the interface function is generated here like:
+// fn hello(name: &amp;str, id: usize) -&gt; String { ... }
+
+// Implement the interface in any crate
+</span><span class="kw">struct </span>HelloIfImpl;
+
+<span class="attr">#[crate_interface::impl_interface]
+</span><span class="kw">impl </span>HelloIf <span class="kw">for </span>HelloIfImpl {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">"Hello, {} {}!"</span>, name, id)
+    }
+}
+
+<span class="comment">// Call the generated caller function using caller function
+</span><span class="macro">assert_eq!</span>(
+    hello(<span class="string">"world"</span>, <span class="number">123</span>),
+    <span class="string">"Hello, world 123!"
+</span>);</code></pre></div><h4 id="avoiding-name-conflicts-with-namespaces"><a class="doc-anchor" href="#avoiding-name-conflicts-with-namespaces">§</a>Avoiding Name Conflicts with Namespaces</h4>
+<p>You can specify a namespace for the interface to avoid name conflicts when
+multiple interfaces with the same name are defined in different crates. It’s
+done by adding the <code>namespace</code> argument to the <code>def_interface!</code>,
+<code>impl_interface!</code> and <code>call_interface!</code> macros.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">mod </span>a {
+    <span class="attr">#[crate_interface::def_interface(namespace = ShoppingMall)]
+    </span><span class="kw">pub trait </span>HelloIf {
+        <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+    }
+}
+
+<span class="kw">mod </span>b {
+    <span class="attr">#[crate_interface::def_interface(namespace = Restaurant)]
+    </span><span class="kw">pub trait </span>HelloIf {
+        <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+    }
+}
+
+<span class="kw">mod </span>c {
+    <span class="kw">use </span>super::{a, b};
+
+    <span class="kw">struct </span>HelloIfImplA;
+
+    <span class="attr">#[crate_interface::impl_interface(namespace = ShoppingMall)]
+    </span><span class="kw">impl </span>a::HelloIf <span class="kw">for </span>HelloIfImplA {
+        <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+            <span class="macro">format!</span>(<span class="string">"Welcome to the mall, {} {}!"</span>, name, id)
+        }
+    }
+
+    <span class="kw">struct </span>HelloIfImplB;
+    <span class="attr">#[crate_interface::impl_interface(namespace = Restaurant)]
+    </span><span class="kw">impl </span>b::HelloIf <span class="kw">for </span>HelloIfImplB {
+        <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+            <span class="macro">format!</span>(<span class="string">"Welcome to the restaurant, {} {}!"</span>, name, id)
+        }
+    }
+}
+
+<span class="kw">fn </span>main() {
+    <span class="comment">// Call the interface functions using namespaces
+    </span><span class="macro">assert_eq!</span>(
+        <span class="macro">crate_interface::call_interface!</span>(namespace = ShoppingMall, a::HelloIf::hello(<span class="string">"Alice"</span>, <span class="number">1</span>)),
+        <span class="string">"Welcome to the mall, Alice 1!"
+    </span>);
+    <span class="macro">assert_eq!</span>(
+        <span class="macro">crate_interface::call_interface!</span>(namespace = Restaurant, b::HelloIf::hello(<span class="string">"Bob"</span>, <span class="number">2</span>)),
+        <span class="string">"Welcome to the restaurant, Bob 2!"
+    </span>);
+}
+</code></pre></div><h4 id="default-implementations-with-weak-symbols"><a class="doc-anchor" href="#default-implementations-with-weak-symbols">§</a>Default Implementations with Weak Symbols</h4>
+<p>The <code>weak_default</code> feature allows you to define <strong>default implementations</strong> for
+interface methods. These defaults are compiled as <strong>weak symbols</strong>, which means:</p>
+<ul>
+<li>Implementors can choose to override only the methods they need</li>
+<li>Methods without explicit implementations will automatically use the defaults</li>
+<li>The linker resolves which implementation to use at link time</li>
+</ul>
+<p>This is useful when you want to provide sensible defaults while still allowing
+customization. To use this feature, you need to use nightly Rust and enable
+<code>#![feature(linkage)]</code> in the crate that defines the interface trait.</p>
+<p>Due to Rust compiler limitations, it’s impossible to implement an interface<br />
+with default implementations in the same crate where it’s defined. This should
+not be a problem for most cases, because the only sensible scenario where an
+interface would be implemented in the same crate where it’s defined is for<br />
+testing, and such tests can always be done in a separate crate.</p>
+<p>For example, given the following interface definition with default
+implementations:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#![feature(linkage)]
+</span><span class="kw">use </span>crate_interface::def_interface;
+
+<span class="attr">#[def_interface]
+</span><span class="kw">pub trait </span>InitIf {
+    <span class="kw">fn </span>init() {
+        <span class="comment">// default implementation that calls another method
+        </span><span class="self">Self</span>::setup();
+        <span class="macro">println!</span>(<span class="string">"Default init"</span>);
+    }
+    <span class="kw">fn </span>setup() {
+        <span class="macro">println!</span>(<span class="string">"Default setup"</span>);
+    }
+}</code></pre></div>
+<p>The macro will expand to:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">pub trait </span>InitIf {
+    <span class="kw">fn </span>init() {
+        <span class="attr">#[allow(non_snake_case)]
+        #[linkage = <span class="string">"weak"</span>]
+        #[no_mangle]
+        </span><span class="kw">extern </span><span class="string">"Rust" </span><span class="kw">fn </span>__InitIf_init() {
+            <span class="comment">// A proxy function is generated for Self::setup() calls
+            </span><span class="attr">#[allow(non_snake_case)]
+            </span><span class="kw">fn </span>__self_proxy_setup() {
+                <span class="kw">unsafe </span>{ __InitIf_mod::__InitIf_setup() }
+            }
+
+            <span class="comment">// Self::setup() is rewritten to use the proxy function
+            </span>__self_proxy_setup();
+            <span class="macro">println!</span>(<span class="string">"Default init"</span>);
+        }
+        __InitIf_init()
+    }
+    <span class="kw">fn </span>setup() {
+        <span class="attr">#[allow(non_snake_case)]
+        #[linkage = <span class="string">"weak"</span>]
+        #[no_mangle]
+        </span><span class="kw">extern </span><span class="string">"Rust" </span><span class="kw">fn </span>__InitIf_setup() {
+            <span class="macro">println!</span>(<span class="string">"Default setup"</span>);
+        }
+        __InitIf_setup()
+    }
+}
+
+<span class="attr">#[doc(hidden)]
+#[allow(non_snake_case)]
+</span><span class="kw">pub mod </span>__InitIf_mod {
+    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+    <span class="kw">extern </span><span class="string">"Rust" </span>{
+        <span class="kw">pub fn </span>__InitIf_init();
+        <span class="kw">pub fn </span>__InitIf_setup();
+    }
+}</code></pre></div>
+<p>The default implementation is compiled as a weak symbol (<code>#[linkage = "weak"]</code>).
+When an implementor provides their own implementation using <code>impl_interface</code>, it
+generates a strong symbol with the same name, which the linker will prefer over
+the weak symbol.</p>
+<p>When a default implementation calls another trait method via <code>Self::method()</code>,
+a proxy function (<code>__self_proxy_method</code>) is generated. This proxy calls the
+extern function, ensuring that if an implementor overrides that method, the
+overridden (strong symbol) version is called at runtime instead of the default.</p>
+<h3 id="things-to-note"><a class="doc-anchor" href="#things-to-note">§</a>Things to Note</h3>
+<p>A few things to keep in mind when using this crate:</p>
+<ul>
+<li>
+<p><strong>Methods with receivers are not supported.</strong> Interface functions must not
+have <code>self</code>, <code>&amp;self</code>, or <code>&amp;mut self</code> parameters. Use associated functions
+(static methods) instead:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[def_interface]
+</span><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo(<span class="kw-2">&amp;</span><span class="self">self</span>); <span class="comment">// error: methods with receiver (self) are not allowed
+</span>}</code></pre></div></li>
+<li>
+<p><strong>Generic parameters are not supported.</strong> Interface functions cannot have
+generic type parameters, lifetime parameters, or const generic parameters:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[def_interface]
+</span><span class="kw">trait </span>MyIf {
+    <span class="kw">fn </span>foo&lt;T&gt;(x: T); <span class="comment">// error: generic parameters are not allowed
+</span>}</code></pre></div></li>
+<li>
+<p>Do not implement an interface for multiple types. No matter in the same crate
+or different crates as long as they are linked together, it will cause a
+link-time error due to duplicate symbol definitions.</p>
+</li>
+<li>
+<p>Do not define multiple interfaces with the same name, without assigning them
+different namespaces. <code>crate_interface</code> does not use crates and modules to
+isolate interfaces, only their names and namespaces are used to identify them.</p>
+</li>
+<li>
+<p>Do not alias interface traits with <code>use path::to::Trait as Alias;</code>, only use
+the original trait name, or an error will be raised.</p>
+</li>
+</ul>
+<h3 id="implementation"><a class="doc-anchor" href="#implementation">§</a>Implementation</h3>
+<p>The procedural macros in the above example will generate the following code:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// #[def_interface]
+</span><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+
+<span class="attr">#[allow(non_snake_case)]
+</span><span class="kw">pub mod </span>__HelloIf_mod {
+    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+    <span class="kw">extern </span><span class="string">"Rust" </span>{
+        <span class="kw">pub fn </span>__HelloIf_hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+    }
+}
+
+<span class="kw">struct </span>HelloIfImpl;
+
+<span class="comment">// #[impl_interface]
+</span><span class="kw">impl </span>HelloIf <span class="kw">for </span>HelloIfImpl {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+        {
+            <span class="attr">#[inline]
+            #[export_name = <span class="string">"__HelloIf_hello"</span>]
+            </span><span class="kw">extern </span><span class="string">"Rust" </span><span class="kw">fn </span>__HelloIf_hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+                HelloIfImpl::hello(name, id)
+            }
+        }
+        {
+            <span class="macro">format!</span>(<span class="string">"Hello, {} {}!"</span>, name, id)
+        }
+    }
+}
+
+<span class="comment">// call_interface!
+</span><span class="macro">assert_eq!</span>(
+    <span class="kw">unsafe </span>{ __HelloIf_mod::__HelloIf_hello(<span class="string">"world"</span>, <span class="number">123</span>) },
+    <span class="string">"Hello, world 123!"
+</span>);</code></pre></div>
+<p>If you enable the <code>gen_caller</code> option in <code>def_interface</code>, calling helper
+functions will also be generated. For example, <code>HelloIf</code> above will generate:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+<span class="attr">#[doc(hidden)]
+#[allow(non_snake_case)]
+</span><span class="kw">pub mod </span>__HelloIf_mod {
+    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+    <span class="kw">extern </span><span class="string">"Rust" </span>{
+        <span class="kw">pub fn </span>__HelloIf_hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+    }
+}
+<span class="attr">#[inline]
+</span><span class="kw">pub fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String {
+    <span class="kw">unsafe </span>{ __HelloIf_mod::__HelloIf_hello(name, id) }
+}</code></pre></div>
+<p>Namespaces are implemented by further mangling the symbol names with the
+namespace, for example, if <code>HelloIf</code> is defined with the <code>ShoppingMall</code>
+namespace, the generated code will be:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">pub trait </span>HelloIf {
+    <span class="kw">fn </span>hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+}
+<span class="attr">#[doc(hidden)]
+#[allow(non_snake_case)]
+</span><span class="kw">pub mod </span>__HelloIf_mod {
+    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+    <span class="kw">extern </span><span class="string">"Rust" </span>{
+        <span class="kw">pub fn </span>__ShoppingMall_HelloIf_hello(name: <span class="kw-2">&amp;</span>str, id: usize) -&gt; String;
+    }
+}</code></pre></div></div></details><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.call_interface.html" title="macro crate_interface::call_interface">call_<wbr>interface</a></dt><dd>Call a function in a crate interface.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.def_interface.html" title="attr crate_interface::def_interface">def_<wbr>interface</a></dt><dd>Define a crate interface.</dd><dt><a class="attr" href="attr.impl_interface.html" title="attr crate_interface::impl_interface">impl_<wbr>interface</a></dt><dd>Implement the crate interface for a struct.</dd></dl></section></div></main></body></html>
